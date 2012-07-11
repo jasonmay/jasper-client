@@ -51,7 +51,7 @@ module JasperClient
   class RepositoryService < ::Savon::Client
   
     # Set this to true if you'd like to have Savon log to stderr
-    ::Savon::Request.log = false;
+    ::Savon.config.log = false;
     
     # Request XML is built using the Request.
     #
