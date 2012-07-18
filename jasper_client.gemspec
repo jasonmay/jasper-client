@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.description = %q{Client for JasperServer}
   s.email = %q{alibby@xforty.com}
   s.executables = ["walker"]
+
   s.extra_rdoc_files = [
     "LICENSE",
      "README.rdoc"
@@ -25,10 +26,9 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "bin/walker",
-     "lib/jasper-client.rb",
-     "lib/jasper-client/http_multipart.rb",
-     "lib/jasper-client/jasper_client.rb",
-     "lib/jasper-client/string.rb",
+     "lib/jasper_client/http_multipart.rb",
+     "lib/jasper_client/jasper_client.rb",
+     "lib/jasper_client/string.rb",
      "test/helper.rb",
      "test/test_jasper_client.rb"
   ]
