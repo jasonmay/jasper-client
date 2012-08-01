@@ -1,33 +1,33 @@
-require 'rest-client'
+require 'rest_client'
 
 # Contiainer for things belonging to jasper client.
 module JasperClient
   # a Jasper Server resource.
   #
   # A Jasperserver resource is a generic concept used to represent almost anything
-  # in a jasper server.  It can be a file, an image, pre-run report output, a query, 
-  # a report control, etc.  We attempt to boil down the resource to something 
+  # in a jasper server.  It can be a file, an image, pre-run report output, a query,
+  # a report control, etc.  We attempt to boil down the resource to something
   # relatively consumable by application developers.
   class Resource
     attr_reader :name, :type, :uri_string, :label, :description, :creation_date, :properties, :resources
-    
-    # Take a Nokogiri::XML object of a 
+
+    # Take a Nokogiri::XML object of a
     def initialize(soap)
       return unless soap.respond_to?(:search)
-      
+
       @name = soap['name']
       @type = soap['wsType']
       @uri_string = soap['uriString']
       @label = soap.search('./label/node()').inner_text
       @description = soap.search('./description/node()').inner_text
       @creation_date = soap.search('./creation_date/node()').inner_text
-      
+
       initialize_properties soap.search('./resourceProperty')
       initialize_resources soap.search('./resourceDescriptor')
     end
-    
-    private 
-    
+
+    private
+
     # extract all <resourceProperty> tags from the resource and turn them
     # into a hash in @properties.
     def initialize_properties(properties)
@@ -36,7 +36,7 @@ module JasperClient
         @properties[prop['name']] = prop.inner_text.strip
       end
     end
-    
+
     # extract all <resourceDescriptor> tags and turn them into Resource objects.
     def initialize_resources(resources)
       @resources = []
@@ -45,7 +45,7 @@ module JasperClient
       end
     end
   end
-  
+
   # A crack at a Jasper Server client for the repository service.
   #
   # This client sits on top of several common Ruby APIs including
@@ -66,7 +66,7 @@ module JasperClient
       #
 
       ##
-      # :method: runReport    
+      # :method: runReport
 
       # Create a new Request.  The name passed is the
       # request name (eg list, get, runReport).
@@ -82,12 +82,12 @@ module JasperClient
         inner_xml.request 'operationName' => soap_method do |request|
           yield request
         end
-      
+
         body = Builder::XmlMarkup.new :indent => 2
         body.requestXmlString { |request_string| request_string.cdata! inner_xml.target! }
       end
-    
-      # Returns the soap method name for this request.  
+
+      # Returns the soap method name for this request.
       def soap_method
         self.name.to_s.underscore
       end
@@ -99,17 +99,17 @@ module JasperClient
     # So for example ListResponse, GetResponse, RunReportResponse.
     class Response
       attr_reader :xml_doc, :resources
-    
+
       # "0" if the request was successfully processed by the server.
       def return_code
         xml_doc.search('//returnCode').inner_text
       end
-    
+
       # return true if the response is successful.
       def success?
         "0" == return_code
       end
-    
+
       # return "OK" on success, since successful responses don't seem to have
       # messages.  When the response is not successful, the message is pulled
       # from the response xml.
@@ -120,7 +120,7 @@ module JasperClient
           xml_doc.search('//returnMessage/node()').inner_text
         end
       end
-      
+
       # Search the response using xpath.  When this Responses xml_doc
       # does not have a search method, a string with inner_text and inner_html
       # methods are added.  The reson for this is so unwitting callers
@@ -128,7 +128,7 @@ module JasperClient
       # has a valid xml_doc.
       def search(path)
         return xml_doc.search(path) if xml_doc.respond_to?(:search)
-      
+
         # return something that acts like a dom element (nokogiri)
         x = ""
         class << x
@@ -137,16 +137,16 @@ module JasperClient
         end
         x
       end
-      
+
       # Extract resourceDescriptors from the response and drop them into @resources.
       def collect_resources
         @resources = @xml_doc.search('./operationResult/resourceDescriptor').map { |r| Resource.new(r) }
       end
-      
+
       # Response from a list request.
       class ListResponse < Response
         include Enumerable
-        # Initialize the list response from a Savon response.  The listReturn element is 
+        # Initialize the list response from a Savon response.  The listReturn element is
         # pulled from the response, and each resourceDescriptor child of that element is
         # collected into a list as each item in the list.
         def initialize(savon_response)
@@ -154,16 +154,16 @@ module JasperClient
           @xml_doc = Nokogiri::XML soap_doc.search('//listReturn/node()').inner_text
           collect_resources
         end
-      
+
         # Get a list of items from the list response.  Each of the items in the list
         # returned is a JasperClient::Resource.
         def items
           resources
         end
-        
+
         def each(&blk); @resources.each(&blk); end
       end
-    
+
       # Response from a get request.
       class GetResponse < Response
         # Initialize the list response from a Savon response.  The getReturn element is
@@ -177,7 +177,7 @@ module JasperClient
           end
         end
       end
-    
+
       # Response from a runReport request.
       class RunReportResponse < Response
         attr_reader :http
@@ -189,7 +189,7 @@ module JasperClient
             @xml_doc = Nokogiri::XML soap_doc.search('//runReportReturn/node()').inner_text
           end
         end
-        
+
         # return the multipart related parts from the http response.
         # When the response is not multipart, an empty list is returned.
         def parts
@@ -197,19 +197,20 @@ module JasperClient
         end
       end
     end
-  
+
     attr_reader :rest_uri, :username, :password
-  
+
     # Initialize the JapserClient with a URL (points to the
     # repository service), a username, and a password.
     def initialize(rest_uri, username, password)
       @rest_uri = rest_uri.to_s
       @username = username.to_s
       @password = password.to_s
-      response = RestClient.post("#{@rest_uri}/login", {:j_username => @username, :j_password => @password})
-      raise response.class.to_s
+      RestClient.post("#{@rest_uri}/login", {:j_username => @username, :j_password => @password}) do |resp, req, result|
+        @session = resp.cookies["JSESSIONID"] if result.code == "200"
+      end
     end
-  
+
     # return true if name indicates a supported request.
     def supported_request?(name)
       [:get, :list, :run_report].include? name.to_sym
