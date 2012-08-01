@@ -1,3 +1,5 @@
+require 'rest-client'
+
 # Contiainer for things belonging to jasper client.
 module JasperClient
   # a Jasper Server resource.
@@ -196,17 +198,16 @@ module JasperClient
       end
     end
   
-    attr_reader :wsdl_url, :username, :password
+    attr_reader :rest_uri, :username, :password
   
     # Initialize the JapserClient with a URL (points to the
     # repository service), a username, and a password.
-    def initialize(wsdl_url, username, password)
-      @wsdl_url = wsdl_url.to_s
+    def initialize(rest_uri, username, password)
+      @rest_uri = rest_uri.to_s
       @username = username.to_s
       @password = password.to_s
-      
-      super @wsdl_url
-      request.basic_auth @username, @password
+      response = RestClient.post("#{@rest_uri}/login", {:j_username => @username, :j_password => @password})
+      raise response.class.to_s
     end
   
     # return true if name indicates a supported request.
