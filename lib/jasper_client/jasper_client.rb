@@ -48,44 +48,11 @@ module JasperClient
   #
   # This client sits on top of several common Ruby APIs including
   # the Savon SOAP API, XmlBuilder, and nokogiri.
-  class RepositoryService < ::Savon::Client
-  
-    # Set this to true if you'd like to have Savon log to stderr
-    ::Savon::Request.log = false;
-    
-    # Request XML is built using the Request.
-    #
-    # A request looks like:
-    #
-    # <?xml version="1.0" encoding="utf-8"?>
-    # <soapenv:Envelope 
-    #     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    #     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-    #     xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
-    #     xmlns:axis="http://axis2.ws.jasperserver.jaspersoft.com">
-    #   <soapenv:Body>
-    #     <axis:list soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-    #       <requestXmlString xsi:type="xsd:string">
-    #       <![CDATA[
-    #          <request operationName="list"> 
-    #            <argument name="LIST_RESOURCES"/> 
-    #            <argument name="RESOURCE_TYPE">reportUnit</argument> 
-    #            <argument name="START_FROM_DIRECTORY">/Reports/xforty</argument> 
-    #         </request>
-    #         ]]>
-    #       </requestXmlString>
-    #      </axis:list>
-    #   </soapenv:Body>
-    # </soapenv:Envelope>
-    #
-    # The soap envelope, body, and action (in this case axis:list) elements
-    # are automatically constructed by Savon.  The requestXmlString element and 
-    # sub elements are created by the build() method.  This method yields a builder
-    # that is expected to create the contents of the request element (the arugment 
-    # tags in this case).
+  class RepositoryService
+
     class Request
       attr_reader :name
-      
+
       ##
       # :method: list
       #
@@ -104,7 +71,7 @@ module JasperClient
       def initialize(name)
         @name = name
       end
-    
+
       # Takes a block which is yielded with an XML builder
       # that represents the internal XML inside the <request>
       # tags in the request.

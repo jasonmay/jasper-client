@@ -4,8 +4,6 @@ puts File.dirname(__FILE__)
 
 $:.unshift File.join(File.dirname(__FILE__), '..', 'lib', 'jasper-client')
 
-p $:
-
 require 'jasper-client'
 require 'rubygems'
 
