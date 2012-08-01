@@ -15,6 +15,9 @@ Gem::Specification.new do |s|
   s.email = %q{alibby@xforty.com}
   s.executables = ["walker"]
 
+  s.add_dependency("rest-client", "~> 1.6.6")
+  s.add_dependency("nokogiri", "~> 1.5.5")
+
   s.extra_rdoc_files = [
     "LICENSE",
      "README.rdoc"
