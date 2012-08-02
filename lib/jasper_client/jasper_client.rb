@@ -223,18 +223,7 @@ module JasperClient
       resources = []
       body_obj = Nokogiri::XML response.body
       body_obj.search("//resourceDescriptor").each do |node|
-        resource = {}
-        resource[:name] = node.attr("name")
-        resource[:uri_string] = node.attr("uriString")
-        resource[:type] = node.attr("wsType")
-        resource[:label] = node.search("./label").inner_html
-        resource[:description] = node.search("./description").inner_html
-        resource[:properties] = {}
-        node.search('./resourceProperty').each do |prop_node|
-          resource[:properties][prop_node.attr("name")] = prop_node.search("./value").inner_html
-        end
-
-        resources << resource
+        resources << massage_resource(node)
       end
 
       resources
@@ -252,18 +241,8 @@ module JasperClient
 
       resources = []
       body_obj = Nokogiri::XML response.body
-      body_obj.search("//resourceDescriptors/resourceDescriptor").collect do |node|
-        resource = {}
-        resource[:name] = node.attr("name")
-        resource[:uri_string] = node.attr("uriString")
-        resource[:type] = node.attr("wsType")
-        resource[:label] = node.search("./label").inner_html
-        resource[:description] = node.search("./description").inner_html
-        resource[:properties] = {}
-        node.search('./resourceProperty').each do |prop_node|
-          resource[:properties][prop_node.attr("name")] = prop_node.search("./value").inner_html
-        end
-        resources << resource
+      body_obj.search("//resourceDescriptor").each do |node|
+        resources << massage_resource(node)
       end
 
       resources
@@ -271,6 +250,25 @@ module JasperClient
 
     def run_report
       raise "Unimplemented"
+    end
+
+    private
+
+    def massage_resource(node)
+      resource = {}
+
+      resource[:name] = node.attr("name")
+      resource[:uri_string] = node.attr("uriString")
+      resource[:type] = node.attr("wsType")
+      resource[:label] = node.search("./label").inner_html
+      resource[:description] = node.search("./description").inner_html
+
+      resource[:properties] = {}
+      node.search('./resourceProperty').each do |prop_node|
+        resource[:properties][prop_node.attr("name")] = prop_node.search("./value").inner_html
+      end
+
+      resource
     end
   end
 end
