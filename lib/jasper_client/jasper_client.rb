@@ -211,8 +211,33 @@ module JasperClient
       end
     end
 
-    def get
-      raise "Unimplemented"
+    def get(options = {})
+      params = {}
+
+      response = RestClient.get("#{@rest_uri}/resource#{options[:path]}", {:params => params, :cookies => {"JSESSIONID" => @session}})
+
+      if response.code != 200
+        raise "Error: #{response.body}"
+      end
+
+      resources = []
+      body_obj = Nokogiri::XML response.body
+      body_obj.search("//resourceDescriptor").each do |node|
+        resource = {}
+        resource[:name] = node.attr("name")
+        resource[:uri_string] = node.attr("uriString")
+        resource[:type] = node.attr("wsType")
+        resource[:label] = node.search("./label").inner_html
+        resource[:description] = node.search("./description").inner_html
+        resource[:properties] = {}
+        node.search('./resourceProperty').each do |prop_node|
+          resource[:properties][prop_node.attr("name")] = prop_node.search("./value").inner_html
+        end
+
+        resources << resource
+      end
+
+      resources
     end
 
     def list(options = {})

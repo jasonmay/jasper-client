@@ -22,6 +22,13 @@ class TestJasperClient < Test::Unit::TestCase
     assert response.kind_of?(Array)
   end
 
+  should "respond to get requests" do
+    client = setup_connection
+    response = client.get :path => "/reports/test_report_3"
+
+    assert response.kind_of?(Array)
+  end
+
   should "respond to runReport requests" do
     pend("Not implemented yet")
     client = setup_connection
