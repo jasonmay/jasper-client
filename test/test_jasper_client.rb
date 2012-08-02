@@ -49,37 +49,37 @@ class TestJasperClient < Test::Unit::TestCase
   end
 
   should "should detect bad connection" do
-    assert_raise(Errno::ECONNREFUSED) do 
+    assert_raise(Errno::ECONNREFUSED) do
       client = bad_connection
       response = client.run_report do |req|
         req.argument 'HTML', :name => 'RUN_OUTPUT_FORMAT'
-  
-        req.resourceDescriptor :name => 'JRLogo', 
-          :wsType => 'img', 
-          :uriString => '/reports/xforty/user_list', 
+
+        req.resourceDescriptor :name => 'JRLogo',
+          :wsType => 'img',
+          :uriString => '/reports/xforty/user_list',
           :isNew => 'false'
       end
     end
   end
 
-  should "produce string message when report path is bad" do 
+  should "produce string message when report path is bad" do
     client = setup_connection
     response = client.run_report do |req|
       req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xfortys/user_list', :isNew => 'false'
     end
-    
+
     assert(response.message.class == String)
   end
 
-  should "return valid message on bad report path" do 
+  should "return valid message on bad report path" do
     client = setup_connection
     response = client.run_report do |req|
       req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xfortys/user_list', :isNew => 'false'
     end
-    
+
     assert(response.message.length > 0)
   end
-  
+
   should "fetch on a bad resource path should be unsuccessful" do
     client = setup_connection
     response = client.run_report do |req|
