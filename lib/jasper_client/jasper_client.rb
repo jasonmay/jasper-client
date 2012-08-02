@@ -234,6 +234,10 @@ module JasperClient
         resource[:type] = node.attr("wsType")
         resource[:label] = node.search("./label").inner_html
         resource[:description] = node.search("./description").inner_html
+        resource[:properties] = {}
+        node.search('./resourceProperty').each do |prop_node|
+          resource[:properties][prop_node.attr("name")] = prop_node.search("./value").inner_html
+        end
         resources << resource
       end
 
