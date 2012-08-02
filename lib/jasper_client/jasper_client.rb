@@ -248,8 +248,38 @@ module JasperClient
       resources
     end
 
-    def run_report
-      raise "Unimplemented"
+    def run_report(options = {})
+      params = {}
+      params[:RUN_OUTPUT_FORMAT] = options[:format] if options.include?(:format)
+      params[:PAGE] = options[:page] if options.include?(:page)
+      path = "#{@rest_uri}/report#{options[:path]}"
+
+      body = Nokogiri::XML::Builder.new do |xml|
+        xml.resourceDescriptor(:uriString => options[:path], :wsType => "reportUnit") {
+          xml.label "Something"
+        }
+      end
+      res_body = RestClient.put(path, body.to_xml, {:params => params, :cookies => {"JSESSIONID" => @session}})
+
+      #<report>
+      #  <uuid>056b8edf-c944-4720-a941-a62091c77b20</uuid>
+      #  <originalUri>/reports/test_report_3</originalUri>
+      #  <totalPages>0</totalPages>
+      #  <startPage>1</startPage>
+      #  <endPage>0</endPage>
+      #  <file type="text/html"><![CDATA[report]]></file>
+      #</report>
+      res = Nokogiri::XML res_body
+      report = res.search("/report").first
+      response = {}
+      response[:uuid] = report.search("./uuid").inner_html
+      response[:totalPages] = report.search("./totalPages").inner_html
+      response[:startPage] = report.search("./startPage").inner_html
+      response[:endPage] = report.search("./endPage").inner_html
+      file = report.search("./file").first
+      response[:file] = {:type => file.attr("type"), :value => file.inner_html}
+
+      response
     end
 
     private

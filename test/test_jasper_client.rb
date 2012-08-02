@@ -29,19 +29,10 @@ class TestJasperClient < Test::Unit::TestCase
     assert response.kind_of?(Array)
   end
 
-  should "respond to runReport requests" do
-    pend("Not implemented yet")
+  should "respond to run_report requests" do
     client = setup_connection
-    response = client.run_report do |req|
-      req.argument 'HTML', :name => 'RUN_OUTPUT_FORMAT'
-  
-      req.resourceDescriptor :name => 'JRLogo', 
-        :wsType => 'img', 
-        :uriString => '/reports/xforty/user_list', 
-        :isNew => 'false'
-    end
-    assert(response.return_code == "0")
-    assert(response.parts.count > 0)
+    response = client.run_report :path => "/reports/test_report_3", :format => "HTML"
+    assert response.include?(:uuid)
   end
 
   should "should detect bad connection" do
