@@ -211,25 +211,38 @@ module JasperClient
       end
     end
 
-    # return true if name indicates a supported request.
-    def supported_request?(name)
-      [:get, :list, :run_report].include? name.to_sym
+    def get
+      raise "Unimplemented"
     end
-  
-    # Essentially a proxy to method_missing for Savon.  If the method call is
-    # to a known request type, build XML with a request object and then 
-    # execute the Savon request.
-    def method_missing(name, *params, &block)
-      if supported_request?(name)
-        req = Request.new(name)
-        request_xml = req.build(&block)
-      
-        savon_response = super(name) { |soap| soap.body = request_xml.to_s }
-        response_class = Response.const_get "%sResponse" % [ name.to_s.humpify.to_sym ]
-        response_class.new savon_response
-      else
-        super(name, params)
+
+    def list(options = {})
+      params = {}
+      params[:type] = options[:resource_type] if options.include?(:resource_type)
+
+      response = RestClient.get("#{@rest_uri}/resources/reports", {:params => params, :cookies => {"JSESSIONID" => @session}})
+
+      if response.code != 200
+        $stdout.puts "Error: #{response.body}"
+        nil
       end
+
+      resources = []
+      body_obj = Nokogiri::XML response.body
+      body_obj.search("//resourceDescriptors/resourceDescriptor").collect do |node|
+        resource = {}
+        resource[:name] = node.attr("name")
+        resource[:uri_string] = node.attr("uriString")
+        resource[:type] = node.attr("wsType")
+        resource[:label] = node.search("./label").inner_html
+        resource[:description] = node.search("./description").inner_html
+        resources << resource
+      end
+
+      resources
+    end
+
+    def run_report
+      raise "Unimplemented"
     end
   end
 end

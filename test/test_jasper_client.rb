@@ -2,39 +2,28 @@ require 'helper'
 
 class TestJasperClient < Test::Unit::TestCase
   def setup_connection
-    wsdl = 'http://127.0.0.1:8080/jasperserver/services/repository?wsdl'
+    rest_uri = 'http://127.0.0.1:8080/jasperserver/rest'
     user = 'jasperadmin'
     pass = user
-    JasperClient::RepositoryService.new(wsdl, user, pass)    
+    JasperClient::RepositoryService.new(rest_uri, user, pass)
   end
-  
+
   def bad_connection
     wsdl = 'http://127.0.0.1:8081/jasperserver/services/repository?wsdl'
     user = 'jasperadmin'
     pass = user
     JasperClient::RepositoryService.new(wsdl, user, pass)
   end
-  
-  should "respond to list requests" do 
-    client = setup_connection
-    response = client.list do |request|
-      request.argument :name => "LIST_RESOURCES"
-      request.argument 'reportUnit', :name => "RESOURCE_TYPE"
-      request.argument '/Reports/xforty', :name => 'START_FROM_DIRECTORY'
-    end
 
-    assert(response.return_code == "0")
-  end
-  
-  should "respond to get requests" do
+  should "respond to list requests" do
     client = setup_connection
-    response = client.get do |req|
-      req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xforty/user_list', :isNew => 'false'
-    end
-    assert(response.return_code == "0")
+    response = client.list :resource_type => "reportUnit"
+
+    assert response.kind_of?(Array)
   end
 
   should "respond to runReport requests" do
+    pend("Not implemented yet")
     client = setup_connection
     response = client.run_report do |req|
       req.argument 'HTML', :name => 'RUN_OUTPUT_FORMAT'
@@ -49,6 +38,7 @@ class TestJasperClient < Test::Unit::TestCase
   end
 
   should "should detect bad connection" do
+    pend("Not implemented yet")
     assert_raise(Errno::ECONNREFUSED) do
       client = bad_connection
       response = client.run_report do |req|
@@ -63,6 +53,7 @@ class TestJasperClient < Test::Unit::TestCase
   end
 
   should "produce string message when report path is bad" do
+    pend("Not implemented yet")
     client = setup_connection
     response = client.run_report do |req|
       req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xfortys/user_list', :isNew => 'false'
@@ -72,6 +63,7 @@ class TestJasperClient < Test::Unit::TestCase
   end
 
   should "return valid message on bad report path" do
+    pend("Not implemented yet")
     client = setup_connection
     response = client.run_report do |req|
       req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xfortys/user_list', :isNew => 'false'
@@ -81,6 +73,7 @@ class TestJasperClient < Test::Unit::TestCase
   end
 
   should "fetch on a bad resource path should be unsuccessful" do
+    pend("Not implemented yet")
     client = setup_connection
     response = client.run_report do |req|
       req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xfortys/user_list', :isNew => 'false'
@@ -89,6 +82,7 @@ class TestJasperClient < Test::Unit::TestCase
   end
 
   should "fetch on a bad resource path should have non 'OK' message" do
+    pend("Not implemented yet")
     client = setup_connection
     response = client.run_report do |req|
       req.resourceDescriptor :name => 'jrlogo', :wsType => 'img', :uriString => '/Reports/xfortys/user_list', :isNew => 'false'
