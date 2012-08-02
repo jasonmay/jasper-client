@@ -222,8 +222,7 @@ module JasperClient
       response = RestClient.get("#{@rest_uri}/resources/reports", {:params => params, :cookies => {"JSESSIONID" => @session}})
 
       if response.code != 200
-        $stdout.puts "Error: #{response.body}"
-        nil
+        raise "Error: #{response.body}"
       end
 
       resources = []
