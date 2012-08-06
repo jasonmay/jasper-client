@@ -11,19 +11,19 @@ module JasperClient
   class Resource
     attr_reader :name, :type, :uri_string, :label, :description, :creation_date, :properties, :resources
 
-    # Take a Nokogiri::XML object of a
-    def initialize(soap)
-      return unless soap.respond_to?(:search)
+    # Take a Nokogiri::XML object of a resourceDescriptor
+    def initialize(node)
+      return unless node.respond_to?(:search)
 
-      @name = soap['name']
-      @type = soap['wsType']
-      @uri_string = soap['uriString']
-      @label = soap.search('./label/node()').inner_text
-      @description = soap.search('./description/node()').inner_text
-      @creation_date = soap.search('./creation_date/node()').inner_text
+      @name = node['name']
+      @type = node['wsType']
+      @uri_string = node['uriString']
+      @label = node.search('./label/node()').inner_text
+      @description = node.search('./description/node()').inner_text
+      @creation_date = node.search('./creation_date/node()').inner_text
 
-      initialize_properties soap.search('./resourceProperty')
-      initialize_resources soap.search('./resourceDescriptor')
+      initialize_properties node.search('./resourceProperty')
+      initialize_resources node.search('./resourceDescriptor')
     end
 
     private
@@ -223,7 +223,7 @@ module JasperClient
       resources = []
       body_obj = Nokogiri::XML response.body
       body_obj.search("//resourceDescriptor").each do |node|
-        resources << massage_resource(node)
+        resources << Resource.new(node)
       end
 
       resources
@@ -242,7 +242,7 @@ module JasperClient
       resources = []
       body_obj = Nokogiri::XML response.body
       body_obj.search("//resourceDescriptor").each do |node|
-        resources << massage_resource(node)
+        resources << Resource.new(node)
       end
 
       resources
@@ -261,14 +261,6 @@ module JasperClient
       end
       res_body = RestClient.put(path, body.to_xml, {:params => params, :cookies => {"JSESSIONID" => @session}})
 
-      #<report>
-      #  <uuid>056b8edf-c944-4720-a941-a62091c77b20</uuid>
-      #  <originalUri>/reports/test_report_3</originalUri>
-      #  <totalPages>0</totalPages>
-      #  <startPage>1</startPage>
-      #  <endPage>0</endPage>
-      #  <file type="text/html"><![CDATA[report]]></file>
-      #</report>
       res = Nokogiri::XML res_body
       report = res.search("/report").first
       response = {}
@@ -280,25 +272,6 @@ module JasperClient
       response[:file] = {:type => file.attr("type"), :value => file.inner_html}
 
       response
-    end
-
-    private
-
-    def massage_resource(node)
-      resource = {}
-
-      resource[:name] = node.attr("name")
-      resource[:uri_string] = node.attr("uriString")
-      resource[:type] = node.attr("wsType")
-      resource[:label] = node.search("./label").inner_html
-      resource[:description] = node.search("./description").inner_html
-
-      resource[:properties] = {}
-      node.search('./resourceProperty').each do |prop_node|
-        resource[:properties][prop_node.attr("name")] = prop_node.search("./value").inner_html
-      end
-
-      resource
     end
   end
 end
